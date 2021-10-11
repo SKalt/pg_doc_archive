@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -45,7 +46,11 @@ func main() {
 	})
 	collector.OnResponse(func(response *colly.Response) {
 		if response.StatusCode == 200 {
-			fmt.Println(response.Request.URL.String())
+			url := response.Request.URL.String()
+			if strings.HasSuffix(url, "/") {
+				url = url + "index.hmtl"
+			}
+			fmt.Println(url)
 		}
 	})
 	collector.Visit("https://www.postgresql.org/docs/current/index.html")

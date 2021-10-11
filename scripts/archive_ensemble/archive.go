@@ -2,16 +2,18 @@ package main
 
 import (
 	"archive/tar"
-	"bufio"
 	"compress/gzip"
+	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
+	"strings"
 
+	"github.com/cheggaaa/pb/v3"
 	"github.com/gocolly/colly"
+	"github.com/gocolly/colly/debug"
 )
-
-var logger = log.Default()
 
 func main() {
 	zip, err := gzip.NewWriterLevel(os.Stdout, gzip.BestCompression)
@@ -21,9 +23,16 @@ func main() {
 	defer zip.Close()
 	tapeArchive := tar.NewWriter(zip)
 	defer tapeArchive.Close()
+	debugLog, err := ioutil.TempFile(os.TempDir(), "archive.*.log")
+	fmt.Fprintf(os.Stderr, "debug log at: %s\n", debugLog.Name())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer debugLog.Close()
 
 	collector := colly.NewCollector(
 		colly.AllowedDomains("www.postgresql.org"),
+		colly.Debugger(&debug.LogDebugger{Output: debugLog}),
 		colly.URLFilters(
 			regexp.MustCompile(`/docs/(current|\d.+)/`),
 			regexp.MustCompile(`/media`),
@@ -35,19 +44,19 @@ func main() {
 		// should be sychronous, one url at a time
 	)
 	collector.OnResponse(func(response *colly.Response) {
+		if response.StatusCode != 200 {
+			log.Fatalf("%+v", response)
+		}
 		path := response.Request.URL.Path
-		if path[0:2] == "//" { // trim absolute url -> absolute path
+		if strings.HasPrefix(path, "//") { // trim absolute url -> absolute path
 			path = path[1:]
 		}
-		logger.Printf(
-			"visiting: %s [%d]\n",
-			path, response.StatusCode)
-		if response.StatusCode != 200 {
-			return
+		if strings.HasSuffix(path, "/") {
+			path = path + "index.html"
 		}
 
 		header := tar.Header{
-			Name:   response.Request.URL.Path,
+			Name:   path,
 			Size:   int64(len(response.Body)),
 			Mode:   0666, // rw-rw-rw-
 			Format: tar.FormatPAX,
@@ -58,13 +67,18 @@ func main() {
 		}
 		_, err = tapeArchive.Write(response.Body)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("%+v [%s; %d bytes]\n", err, path, len(response.Body))
 		}
 	})
-	scanner := bufio.NewScanner(os.Stdin)
-	for scanner.Scan() {
-		path := scanner.Text()
-		logger.Printf("input: %s", path)
-		collector.Visit("https://www.postgresql.org/" + path)
+	data, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		log.Fatal(err)
 	}
+	lines := strings.Split(string(data), "\n")
+	bar := pb.Full.Start(len(lines))
+	for _, url := range lines {
+		collector.Visit(url)
+		bar.Increment()
+	}
+	bar.Finish()
 }
