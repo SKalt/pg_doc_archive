@@ -1,9 +1,12 @@
 package main
 
+// note that relative paths should be interpreted relative to the repo root
+
 import (
 	"archive/tar"
 	"compress/gzip"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -23,6 +26,30 @@ func main() {
 	defer zip.Close()
 	tapeArchive := tar.NewWriter(zip)
 	defer tapeArchive.Close()
+
+	pgLicense, err := os.Open("./licenses/postgres.license.md")
+	if err != nil {
+		log.Fatal(err)
+	}
+	info, err := pgLicense.Stat()
+	if err != nil {
+		log.Fatal(err)
+	}
+	header, err := tar.FileInfoHeader(info, "")
+	if err != nil {
+		log.Fatal(err)
+	}
+	header.Name = "/license.txt"
+	err = tapeArchive.WriteHeader(header)
+	if err != nil {
+		log.Fatal(err)
+	}
+	_, err = io.Copy(tapeArchive, pgLicense)
+	if err != nil {
+		log.Fatal(err)
+	}
+	pgLicense.Close()
+
 	debugLog, err := ioutil.TempFile(os.TempDir(), "archive.*.log")
 	fmt.Fprintf(os.Stderr, "debug log at: %s\n", debugLog.Name())
 	if err != nil {
@@ -34,7 +61,9 @@ func main() {
 		colly.AllowedDomains("www.postgresql.org"),
 		colly.Debugger(&debug.LogDebugger{Output: debugLog}),
 		colly.URLFilters(
-			regexp.MustCompile(`/docs/(current|\d.+)/`),
+			regexp.MustCompile(`/docs/current/`),
+			regexp.MustCompile(`/docs/\d.+/`),
+			regexp.MustCompile(`/about`),
 			regexp.MustCompile(`/media`),
 			regexp.MustCompile(`dyncss`),
 			regexp.MustCompile(`/favicon.ico`),

@@ -13,6 +13,7 @@ func main() {
 		colly.AllowedDomains("www.postgresql.org"),
 		colly.URLFilters(
 			regexp.MustCompile(`/docs/(current|\d.+)/`),
+			regexp.MustCompile(`/about`), // contains the license
 			regexp.MustCompile(`/media`),
 			regexp.MustCompile(`dyncss`),
 			regexp.MustCompile(`/favicon.ico`),
@@ -24,25 +25,19 @@ func main() {
 	collector.Limit(&colly.LimitRule{DomainGlob: "*", Parallelism: 4})
 	collector.OnHTML("link[rel='stylesheet']", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		// fmt.Println(link + " # css")
-		e.Request.Visit(link)
+		collector.Visit(e.Request.AbsoluteURL(link))
 	})
 	collector.OnHTML("script[src]", func(e *colly.HTMLElement) {
 		link := e.Attr("src")
-		// fmt.Println(link + " # script")
-		e.Request.Visit(link)
+		collector.Visit(e.Request.AbsoluteURL(link))
 	})
 	collector.OnHTML("img[src]", func(e *colly.HTMLElement) {
 		link := e.Attr("src")
-		// fmt.Println(link + " # img")
-		e.Request.Visit(link)
-
+		collector.Visit(e.Request.AbsoluteURL(link))
 	})
 	collector.OnHTML("a[href]", func(e *colly.HTMLElement) {
 		link := e.Attr("href")
-		// fmt.Println(link)
-		// Visit link found on page on a new thread
-		e.Request.Visit(link)
+		collector.Visit(e.Request.AbsoluteURL(link))
 	})
 	collector.OnResponse(func(response *colly.Response) {
 		if response.StatusCode == 200 {
