@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"regexp"
-	"strings"
+	// "strings"
 
 	"github.com/gocolly/colly/v2"
 )
@@ -42,9 +42,9 @@ func main() {
 	collector.OnResponse(func(response *colly.Response) {
 		if response.StatusCode == 200 {
 			url := response.Request.URL.String()
-			if strings.HasSuffix(url, "/") {
-				url = url + "index.hmtl"
-			}
+			// if strings.HasSuffix(url, "/") {
+			// url = url + "index.html"
+			// }
 			fmt.Println(url)
 		}
 	})

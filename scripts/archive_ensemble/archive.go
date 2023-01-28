@@ -72,18 +72,22 @@ func main() {
 		colly.CacheDir("./.cache"), // reuse cached site data
 		// should be sychronous, one url at a time
 	)
+	visited := map[string]uint8{}
 	collector.OnResponse(func(response *colly.Response) {
 		if response.StatusCode != 200 {
 			log.Fatalf("%+v", response)
 		}
-		path := response.Request.URL.Path
-		if strings.HasPrefix(path, "//") { // trim absolute url -> absolute path
-			path = path[1:]
-		}
+		path := "/" + strings.TrimLeft(response.Request.URL.Path, "/")
+		// trim absolute url -> absolute path
 		if strings.HasSuffix(path, "/") {
 			path = path + "index.html"
 		}
-
+		if _, ok := visited[path]; !ok {
+			visited[path] = 1
+		} else {
+			visited[path]++
+			return
+		}
 		header := tar.Header{
 			Name:   path,
 			Size:   int64(len(response.Body)),
