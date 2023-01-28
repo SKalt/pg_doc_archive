@@ -3,3 +3,4 @@ data/site.tar.gz
 data/url_list.tsv
 bin/*
 !bin/README.md
+.direnv
