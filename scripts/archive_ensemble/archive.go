@@ -7,7 +7,6 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
 	"regexp"
@@ -50,7 +49,7 @@ func main() {
 	}
 	pgLicense.Close()
 
-	debugLog, err := ioutil.TempFile(os.TempDir(), "archive.*.log")
+	debugLog, err := os.CreateTemp(os.TempDir(), "archive.*.log")
 	fmt.Fprintf(os.Stderr, "debug log at: %s\n", debugLog.Name())
 	if err != nil {
 		log.Fatal(err)
@@ -70,8 +69,9 @@ func main() {
 			regexp.MustCompile(`\.(gif|png|jpg|jpeg|svg)`),
 		),
 		colly.CacheDir("./.cache"), // reuse cached site data
-		// should be sychronous, one url at a time
+		// should be synchronous, one url at a time
 	)
+
 	visited := map[string]uint8{}
 	collector.OnResponse(func(response *colly.Response) {
 		if response.StatusCode != 200 {
@@ -103,7 +103,7 @@ func main() {
 			log.Fatalf("%+v [%s; %d bytes]\n", err, path, len(response.Body))
 		}
 	})
-	data, err := ioutil.ReadAll(os.Stdin)
+	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		log.Fatal(err)
 	}

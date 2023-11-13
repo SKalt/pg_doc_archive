@@ -1,6 +1,7 @@
 {
   description = "A very basic flake";
   inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-utils.url = "github:numtide/flake-utils";
   };
 
@@ -14,7 +15,7 @@
       rec {
         devShell = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
-            go # 1.19.x
+            go # 1.20.x
           ];
           buildInputs = with pkgs; [
             nixpkgs-fmt
