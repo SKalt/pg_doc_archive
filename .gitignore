@@ -4,3 +4,4 @@ data/url_list.tsv
 bin/*
 !bin/README.md
 .direnv
+.env
