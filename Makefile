@@ -4,7 +4,7 @@ clean:
 	rm -rf ./data/{site,url}* # it's safe to hold onto .cache, though
 
 ./data/site.tar.gz: ./data/url_list.tsv ./bin/archive
-	./bin/archive <./data/url_list.tsv > ./data/site.tar.gz
+	cat ./data/url_list.tsv | ./bin/archive  > ./data/site.tar.gz
 
 ./bin/spider_urls: ./scripts/spider_urls/scraper.go go.mod go.sum
 	go build -o bin/spider_urls ./scripts/spider_urls
