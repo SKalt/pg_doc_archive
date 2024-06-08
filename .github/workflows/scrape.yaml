@@ -18,11 +18,11 @@ jobs:
       - name: Build bin/spider_urls
         run: make bin/spider_urls
       - name: Run spider
-        run: bin/spider_urls
+        run: make data/url_list.tsv
       - name: Build bin/archive
         run: make bin/archive
       - name: Archive site
-        run: bin/archive
+        run: make data/site.tar.gz
       - name: output archive
         uses: actions/upload-artifact@v4
         with:

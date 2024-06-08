@@ -15,4 +15,4 @@ clean:
 .PHONY: urls
 urls: ./data/url_list.tsv
 ./data/url_list.tsv: ./bin/spider_urls
-	./bin/spider_urls | sort -u > ./data/url_list.tsv
+	./bin/spider_urls | sort -u | tee ./data/url_list.tsv
