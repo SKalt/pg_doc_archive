@@ -1,5 +1,6 @@
 name: Archive docs
 on:
+  workflow_dispatch:
   schedule:
     - cron: '5 4 21 */2 *' # run every other month at an odd time to avoid burdening the server
 jobs:
