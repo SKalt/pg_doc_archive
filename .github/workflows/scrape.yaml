@@ -23,11 +23,6 @@ jobs:
         run: make bin/archive
       - name: Archive site
         run: make data/site.tar.gz
-      - name: output archive
-        uses: actions/upload-artifact@v4
-        with:
-          name: data/site.tar.gz
-          path: data/site.tar.gz
       - name: get date
         id: date
         shell: bash
