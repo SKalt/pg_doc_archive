@@ -1,6 +1,6 @@
 module github.com/SKalt/pg_doc_archive
 
-go 1.20
+go 1.22
 
 require (
 	github.com/cheggaaa/pb/v3 v3.0.8

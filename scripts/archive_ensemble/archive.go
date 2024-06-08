@@ -60,9 +60,8 @@ func main() {
 		colly.AllowedDomains("www.postgresql.org"),
 		colly.Debugger(&debug.LogDebugger{Output: debugLog}),
 		colly.URLFilters(
-			regexp.MustCompile(`/docs/current/`),
-			regexp.MustCompile(`/docs/\d.+/`),
-			regexp.MustCompile(`/about`),
+			regexp.MustCompile(`/docs/(current|\d.+)/`),
+			regexp.MustCompile(`/about/license`),
 			regexp.MustCompile(`/media`),
 			regexp.MustCompile(`dyncss`),
 			regexp.MustCompile(`/favicon.ico`),
@@ -110,7 +109,7 @@ func main() {
 	lines := strings.Split(string(data), "\n")
 	bar := pb.Full.Start(len(lines))
 	for _, url := range lines {
-		collector.Visit(url)
+		_ = collector.Visit(url)
 		bar.Increment()
 	}
 	bar.Finish()

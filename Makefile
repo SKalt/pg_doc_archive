@@ -12,5 +12,7 @@ clean:
 ./bin/archive: ./scripts/archive_ensemble/archive.go go.mod go.sum
 	go build -o bin/archive ./scripts/archive_ensemble
 
+.PHONY: urls
+urls: ./data/url_list.tsv
 ./data/url_list.tsv: ./bin/spider_urls
 	./bin/spider_urls | sort -u > ./data/url_list.tsv

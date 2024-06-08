@@ -1,0 +1,38 @@
+name: Archive docs
+on:
+  schedule:
+    - cron: '5 4 21 */2 *' # run every other month at an odd time to avoid burdening the server
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4 # see https://github.com/actions/checkout
+      - name: Set up Go
+        uses: actions/setup-go@v5 # note: automatically caches dependencies
+        with:
+          go-version: "1.22"
+      - name: Build bin/spider_urls
+        run: make bin/spider_urls
+      - name: Run spider
+        run: bin/spider_urls
+      - name: Build bin/archive
+        run: make bin/archive
+      - name: Archive site
+        run: bin/archive
+      - name: output archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: data/site.tar.gz
+          path: data/site.tar.gz
+      - name: get date
+        id: date
+        shell: bash
+        run: printf "iso_date=%s\n" "$(date "+%Y-%m-%d")" >> $GITHUB_ENV
+      - name: create release
+        uses: ncipollo/release-action@v1.14.0
+        with:
+         artifacts: data/site.tar.gz
+         name: ${{ steps.date.outputs.iso_date }}
