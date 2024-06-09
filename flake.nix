@@ -22,6 +22,7 @@
             gotools
             golangci-lint
             goreleaser
+            gh
             helix
             bashInteractive
           ];
